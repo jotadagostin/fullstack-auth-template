@@ -1,8 +1,30 @@
+import { AppError } from "@/utils/AppError";
 import { Request, Response } from "express";
+import { sign } from "jsonwebtoken";
+import { authConfig } from "@/configs/auth";
 
 class SessionsController {
   async create(request: Request, response: Response) {
-    return response.json({ message: "ok" });
+    const { username, password } = request.body;
+
+    const fakeUser = {
+      id: "1",
+      username: "rodrigo",
+      password: "123456",
+      role: "customer",
+    };
+
+    if (username !== fakeUser.username || password !== fakeUser.password) {
+      throw new AppError("Username e/ou password incorreta!", 401);
+    }
+
+    const { secret, expiresIn } = authConfig.jwt;
+
+    const token = sign({ role: fakeUser.role }, secret, {
+      expiresIn,
+      subject: String(fakeUser.id),
+    });
+    return response.json({ token });
   }
 }
 
